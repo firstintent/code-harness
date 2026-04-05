@@ -38,15 +38,12 @@ The system has three layers of defense against drift:
 # One-liner (downloads and installs)
 curl -sSL https://raw.githubusercontent.com/firstintent/code-harness/main/install.sh | bash -s -- /path/to/your/project
 
-# With dashboard
-curl -sSL https://raw.githubusercontent.com/firstintent/code-harness/main/install.sh | bash -s -- --dashboard /path/to/your/project
-
 # Or clone first, then install locally
 git clone https://github.com/firstintent/code-harness.git
 ./code-harness/install.sh /path/to/your/project
 ```
 
-Options: `--force` to overwrite all files, `--dashboard` to include the web dashboard.
+Options: `--force` to overwrite all files (including your customizations).
 
 ### 2. Customize for your project
 
@@ -94,12 +91,13 @@ your-project/
 ├── CLAUDE.md                              # Entry point (yours)
 ├── .claude/
 │   ├── settings.json                      # Hooks configuration
-│   ├── harness/          ← FRAMEWORK (updated by --update, don't edit)
+│   ├── harness/          ← FRAMEWORK (replaced entirely by --update)
 │   │   ├── VERSION                        # Installed version
 │   │   ├── evaluator.md                   # QA evaluator subagent
 │   │   ├── playbook.md                    # Workflow instructions
 │   │   ├── base-standards.md              # Global quality standards
-│   │   └── check-ownership.sh             # Multi-machine file ownership
+│   │   ├── check-ownership.sh             # Multi-machine file ownership
+│   │   └── dashboard.py                   # Web dashboard
 │   ├── hooks/            ← YOURS (never overwritten by --update)
 │   │   └── protect-arch.sh                # Your architecture constraints
 │   └── rules/            ← YOURS (never overwritten by --update)
@@ -124,7 +122,7 @@ your-project/
 | `.claude/rules/` | You | Never touched | Your project-specific quality standards |
 | `.harness/` | You | Never touched | Tasks, decisions, logs, learned knowledge |
 | `CLAUDE.md` | You | Never touched | Add your project-specific instructions here |
-| `dashboard.py` | Framework | Replaced if `--dashboard` | Don't edit |
+| `dashboard.py` | Framework | Inside `.claude/harness/`, replaced on update | Don't edit |
 
 ## Usage scenarios
 
@@ -222,7 +220,7 @@ See the Multi-Machine Coordination section in `.claude/harness/playbook.md` for 
 Monitor your harness state with the built-in web dashboard:
 
 ```bash
-python dashboard.py /path/to/your/project
+python .claude/harness/dashboard.py /path/to/your/project
 # Open http://localhost:5000
 ```
 
