@@ -1,0 +1,12 @@
+date	task	criteria_pass	criteria_fail	criteria_missed	status	notes
+2026-04-01	T001-scaffold	B001,B005	-	-	accept	initial project scaffold
+2026-04-01	T002-auth	B001,B002,B003,B005	B004	-	accept	evaluator caught missing auth tests, fixed
+2026-04-02	T003-articles	B001,B002,B003,B004,B005,A001	-	-	accept	clean pass
+2026-04-02	T004-comments	B001,B002,B003,B004,A001	-	B002	reject	user found inconsistent error format in comment validation
+2026-04-02	T004-comments-fix	B001,B002,B003,B004,A001	-	-	accept	added P001 standard for error format
+2026-04-03	T005-images	B001,B002,B003,B004,B005	B003	-	accept	evaluator caught missing file size validation, fixed
+2026-04-03	T006-pagination	B001,B002,B003,B004,A001,A002	-	-	accept	clean pass
+2026-04-04	T007-settings	B001,B002,B003,B004,B005,F001,F002	-	-	accept	first frontend task, frontend rules loaded
+2026-04-04	T008-password-reset	B001,B002,B003,B004,A001	-	B003	reject	user found password reset accepts empty string
+2026-04-04	T008-password-fix	B001,B002,B003,B004,A001	-	-	accept	tightened B003 context_acquisition
+2026-04-05	criteria-promote	-	-	-	promote	P001 (error format) moved from rules to PreToolUse hook

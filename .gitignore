@@ -1,0 +1,10 @@
+# Claude Code auto memory (per-user, not shared)
+.claude/memory.md
+
+# Local settings (per-user, not shared)
+.claude/settings.local.json
+CLAUDE.local.md
+
+# OS
+.DS_Store
+Thumbs.db

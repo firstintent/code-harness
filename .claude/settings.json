@@ -1,0 +1,68 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '--- Code Harness Rules (re-injected after compaction) ---' && find \"$CLAUDE_PROJECT_DIR\"/.claude/rules/ -name '*.md' ! -name 'playbook.md' -exec cat {} +"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/protect-arch.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/check-ownership.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "You are a read-only QA evaluator for the code-harness system.\n\n1. Read all .claude/rules/*.md files (except playbook.md) to load quality standards\n2. Identify files changed in this session: run `git diff --name-only HEAD~1` or `git diff --name-only --cached` or `git status --short`\n3. For each rule file, check if its `paths` frontmatter matches any changed files. No paths field = always applicable.\n4. For each applicable standard (B001, A001, etc.), verify by reading code or running tests. Follow context_acquisition hints if present.\n5. Also check .harness/inbox.md for DRAFT standards — evaluate but mark as advisory only.\n6. You CANNOT edit or write files. You can only read and run tests.\n7. If any standard fails: respond {\"ok\": false, \"reason\": \"[standard_id] specific failure description\"}\n8. If all pass: respond {\"ok\": true}\n\nAssume bugs exist until you verify they don't. Running a test that passes is stronger evidence than reading code that looks correct. $ARGUMENTS",
+            "timeout": 120
+          }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "A task was marked complete. Verify the implementation:\n1. Read .claude/rules/*.md for applicable standards\n2. Check changed files against standards\n3. Run relevant tests if they exist\n4. Check interface consistency: grep for shared types/APIs and verify callers match definitions\n5. If insufficient: {\"ok\": false, \"reason\": \"...\"}\n6. If pass: {\"ok\": true}\n$ARGUMENTS",
+            "timeout": 180
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "matcher": "rate_limit|billing_error",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Account quota likely exhausted. Stashing uncommitted work and updating tasks.md.' >&2 && cd \"$CLAUDE_PROJECT_DIR\" && git stash push -m \"harness-autosave-$(date +%s)\" 2>/dev/null; echo '{\"additionalContext\": \"You hit rate limits or billing limits. Immediately: 1) Update your claimed task in .harness/tasks.md to remove your claim so another machine can pick it up. 2) git commit and push .harness/tasks.md. 3) Stop.\"}'"
+          }
+        ]
+      }
+    ]
+  }
+}
