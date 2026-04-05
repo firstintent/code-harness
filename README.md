@@ -32,20 +32,21 @@ The system has three layers of defense against drift:
 
 ## Quick start
 
-### 1. Copy into your project
+### 1. Install
 
 ```bash
-# Copy code-harness files into your existing project
-cp -r code-harness/.claude /path/to/your/project/
-cp -r code-harness/.harness /path/to/your/project/
-cp code-harness/CLAUDE.md /path/to/your/project/
+# One-liner (downloads and installs)
+curl -sSL https://raw.githubusercontent.com/firstintent/code-harness/main/install.sh | bash -s -- /path/to/your/project
 
-# Make hooks executable
-chmod +x /path/to/your/project/.claude/hooks/*.sh
+# With dashboard
+curl -sSL https://raw.githubusercontent.com/firstintent/code-harness/main/install.sh | bash -s -- --dashboard /path/to/your/project
 
-# Add to .gitignore
-echo ".claude/memory.md" >> /path/to/your/project/.gitignore
+# Or clone first, then install locally
+git clone https://github.com/firstintent/code-harness.git
+./code-harness/install.sh /path/to/your/project
 ```
+
+Options: `--force` to overwrite existing files, `--dashboard` to include the web dashboard.
 
 ### 2. Customize for your project
 
@@ -194,6 +195,17 @@ Each promotion increases determinism. The goal: every standard that CAN be mecha
 4. Machines auto-coordinate via git push/pull
 
 See the Multi-Machine Coordination section in `.claude/rules/playbook.md` for the full protocol.
+
+## Dashboard
+
+Monitor your harness state with the built-in web dashboard:
+
+```bash
+python dashboard.py /path/to/your/project
+# Open http://localhost:5000
+```
+
+Shows tasks, decisions, evaluator log, standards, and multi-machine status. Auto-refreshes every 15 seconds.
 
 ## Inspired by
 
