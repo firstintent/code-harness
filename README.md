@@ -91,7 +91,7 @@ cat .claude/harness/VERSION
 
 ```
 your-project/
-├── CLAUDE.md                              # Entry point
+├── CLAUDE.md                              # Entry point (yours)
 ├── .claude/
 │   ├── settings.json                      # Hooks configuration
 │   ├── harness/          ← FRAMEWORK (updated by --update, don't edit)
@@ -123,7 +123,7 @@ your-project/
 | `.claude/hooks/` | You | Never touched | Your project-specific architecture constraints |
 | `.claude/rules/` | You | Never touched | Your project-specific quality standards |
 | `.harness/` | You | Never touched | Tasks, decisions, logs, learned knowledge |
-| `CLAUDE.md` | Framework | **Replaced** on update | Add project-specific instructions to `CLAUDE.local.md` instead |
+| `CLAUDE.md` | You | Never touched | Add your project-specific instructions here |
 | `dashboard.py` | Framework | Replaced if `--dashboard` | Don't edit |
 
 ## Usage scenarios

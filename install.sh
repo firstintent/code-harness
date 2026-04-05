@@ -136,7 +136,6 @@ if [ "$UPDATE" -eq 1 ]; then
   copy_framework "$SCRIPT_DIR/.claude/harness/base-standards.md"  "$TARGET/.claude/harness/base-standards.md"
   copy_framework "$SCRIPT_DIR/.claude/harness/check-ownership.sh" "$TARGET/.claude/harness/check-ownership.sh"
   copy_framework "$SCRIPT_DIR/.claude/settings.json"              "$TARGET/.claude/settings.json"
-  copy_framework "$SCRIPT_DIR/CLAUDE.md"                          "$TARGET/CLAUDE.md"
 
   chmod +x "$TARGET/.claude/harness/"*.sh 2>/dev/null
 

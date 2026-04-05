@@ -93,7 +93,7 @@ cat .claude/harness/VERSION
 
 ```
 your-project/
-├── CLAUDE.md                              # 入口文件
+├── CLAUDE.md                              # 入口文件（你的）
 ├── .claude/
 │   ├── settings.json                      # Hooks 配置
 │   ├── harness/          ← 框架目录（--update 更新，勿手动编辑）
@@ -125,7 +125,7 @@ your-project/
 | `.claude/hooks/` | 你 | 不触碰 | 你的项目架构约束 |
 | `.claude/rules/` | 你 | 不触碰 | 你的项目质量标准 |
 | `.harness/` | 你 | 不触碰 | 任务、决策、日志、知识库 |
-| `CLAUDE.md` | 框架 | **替换** | 项目特有指令放 `CLAUDE.local.md` |
+| `CLAUDE.md` | 你 | 不触碰 | 在这里添加项目特有指令 |
 | `dashboard.py` | 框架 | 带 `--dashboard` 时替换 | 勿编辑 |
 
 ## 使用场景
