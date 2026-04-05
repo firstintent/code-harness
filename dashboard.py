@@ -233,12 +233,14 @@ def parse_log():
 
 def parse_standards():
     """Parse .claude/rules/*.md and .harness/inbox.md for standards."""
-    rules_dir = PROJECT / ".claude" / "rules"
     files = []
+    scan_dirs = [PROJECT / ".claude" / "harness", PROJECT / ".claude" / "rules"]
 
-    if rules_dir.exists():
+    for rules_dir in scan_dirs:
+        if not rules_dir.exists():
+            continue
         for f in sorted(rules_dir.glob("*.md")):
-            if f.name == "playbook.md":
+            if f.name in ("playbook.md", "evaluator.md"):
                 continue
             text = f.read_text()
             # Strip HTML comments to avoid matching commented-out standards

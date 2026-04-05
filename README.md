@@ -17,7 +17,7 @@ code-harness is a set of configuration files that turn Claude Code into an auton
 ## How it works
 
 ```
-Claude Code (execution) ← .claude/rules/*.md (standards)
+Claude Code (execution) ← .claude/harness/ + .claude/rules/ (standards)
          ↓                        ↑
     Stop hook          reject signal from human
          ↓                        ↑
@@ -46,14 +46,13 @@ git clone https://github.com/firstintent/code-harness.git
 ./code-harness/install.sh /path/to/your/project
 ```
 
-Options: `--force` to overwrite existing files, `--dashboard` to include the web dashboard.
+Options: `--force` to overwrite all files, `--dashboard` to include the web dashboard.
 
 ### 2. Customize for your project
 
 Edit these files for your project:
 
 - `.claude/hooks/protect-arch.sh` — add your architecture rules
-- `.claude/rules/base-standards.md` — adjust baseline standards
 - `.claude/rules/api-quality.md` — adjust paths and API standards
 - `.claude/rules/frontend-quality.md` — adjust paths and frontend standards
 - `.harness/architecture.md` — describe your project structure
@@ -78,32 +77,54 @@ claude
 
 That's it. The hooks handle everything else automatically.
 
+### 4. Update
+
+```bash
+# Update framework files only (your customizations are safe)
+curl -sSL https://raw.githubusercontent.com/firstintent/code-harness/main/install.sh | bash -s -- --update
+
+# Check current version
+cat .claude/harness/VERSION
+```
+
 ## File structure
 
 ```
 your-project/
-├── CLAUDE.md                           # Entry point (3 lines)
+├── CLAUDE.md                              # Entry point
 ├── .claude/
-│   ├── settings.json                   # Hooks configuration
-│   ├── agents/
-│   │   └── evaluator.md                # QA evaluator subagent
-│   ├── hooks/
-│   │   ├── protect-arch.sh             # Architecture constraints
-│   │   └── check-ownership.sh          # Multi-machine file ownership
-│   └── rules/
-│       ├── playbook.md                 # Workflow instructions
-│       ├── base-standards.md           # Global quality standards
-│       ├── api-quality.md              # API standards (path-scoped)
-│       └── frontend-quality.md         # Frontend standards (path-scoped)
+│   ├── settings.json                      # Hooks configuration
+│   ├── harness/          ← FRAMEWORK (updated by --update, don't edit)
+│   │   ├── VERSION                        # Installed version
+│   │   ├── evaluator.md                   # QA evaluator subagent
+│   │   ├── playbook.md                    # Workflow instructions
+│   │   ├── base-standards.md              # Global quality standards
+│   │   └── check-ownership.sh             # Multi-machine file ownership
+│   ├── hooks/            ← YOURS (never overwritten by --update)
+│   │   └── protect-arch.sh                # Your architecture constraints
+│   └── rules/            ← YOURS (never overwritten by --update)
+│       ├── api-quality.md                 # Your API standards
+│       └── frontend-quality.md            # Your frontend standards
 │
-└── .harness/
-    ├── tasks.md                        # Task list + claim status
-    ├── decisions.md                    # Decision queue (human async)
-    ├── learned.md                      # Cross-session knowledge
-    ├── inbox.md                        # New standards staging
-    ├── log.tsv                         # Evaluator history
-    └── architecture.md                 # Project architecture map
+└── .harness/             ← YOURS (never overwritten by --update)
+    ├── tasks.md                           # Task list + claim status
+    ├── decisions.md                       # Decision queue (human async)
+    ├── learned.md                         # Cross-session knowledge
+    ├── inbox.md                           # New standards staging
+    ├── log.tsv                            # Evaluator history
+    └── architecture.md                    # Project architecture map
 ```
+
+### File ownership
+
+| Directory | Owner | `--update` behavior | What to put here |
+|-----------|-------|---------------------|------------------|
+| `.claude/harness/` | Framework | **Replaced** on update | Don't edit — your changes will be overwritten |
+| `.claude/hooks/` | You | Never touched | Your project-specific architecture constraints |
+| `.claude/rules/` | You | Never touched | Your project-specific quality standards |
+| `.harness/` | You | Never touched | Tasks, decisions, logs, learned knowledge |
+| `CLAUDE.md` | Framework | **Replaced** on update | Add project-specific instructions to `CLAUDE.local.md` instead |
+| `dashboard.py` | Framework | Replaced if `--dashboard` | Don't edit |
 
 ## Usage scenarios
 
@@ -194,7 +215,7 @@ Each promotion increases determinism. The goal: every standard that CAN be mecha
 3. Add `owns:` patterns to tasks in tasks.md
 4. Machines auto-coordinate via git push/pull
 
-See the Multi-Machine Coordination section in `.claude/rules/playbook.md` for the full protocol.
+See the Multi-Machine Coordination section in `.claude/harness/playbook.md` for the full protocol.
 
 ## Dashboard
 

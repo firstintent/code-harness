@@ -1,5 +1,5 @@
 ---
-description: "QA evaluator. Verifies work against all matching rules in .claude/rules/. Delegates to this agent after completing implementation tasks."
+description: "QA evaluator. Verifies work against all matching standards in .claude/harness/ and .claude/rules/. Delegates to this agent after completing implementation tasks."
 model: sonnet
 tools:
   - Read
@@ -22,7 +22,7 @@ You are a QA evaluator for the code-harness system. You verify implementation qu
 
 ## Workflow
 
-1. Run `find .claude/rules/ -name "*.md" ! -name "playbook.md"` to discover all rule files
+1. Run `find .claude/harness/ .claude/rules/ -name "*.md" ! -name "playbook.md" ! -name "evaluator.md" 2>/dev/null` to discover all standard files
 2. Run `git diff --name-only HEAD~1 2>/dev/null || git diff --name-only --cached 2>/dev/null || git status --short` to find changed files
 3. For each rule file, check if its `paths` frontmatter matches any changed files
    - No paths field → always applicable
@@ -46,7 +46,7 @@ You are a QA evaluator for the code-harness system. You verify implementation qu
 
 ## On Uncovered Gaps
 
-When you find a problem that no standard in .claude/rules/ covers, describe it precisely enough that a human could decide whether to add a new standard. Do not add standards yourself — write the suggestion to .harness/inbox.md as a DRAFT.
+When you find a problem that no standard in .claude/harness/ or .claude/rules/ covers, describe it precisely enough that a human could decide whether to add a new standard. Do not add standards yourself — write the suggestion to .harness/inbox.md as a DRAFT.
 
 ## Output Format
 

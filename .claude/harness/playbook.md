@@ -26,7 +26,7 @@ If GC is also done, re-check decisions.md for newly resolved items.
 When the user says "reject:" or sends a reject via Telegram/Discord channel:
 
 1. Ask for the reason (if not already stated)
-2. Check .claude/rules/*.md — does any existing standard cover this issue?
+2. Check .claude/harness/*.md and .claude/rules/*.md — does any existing standard cover this issue?
    - YES but evaluator missed it → append to .harness/log.tsv with `missed: <standard_id>`
    - NO → write a DRAFT standard to .harness/inbox.md with:
      - Proposed id (e.g. DRAFT-A004)
@@ -55,7 +55,7 @@ When the user says "do GC" or when all tasks are blocked:
 Standards evolve through four stages:
 
 ```
-auto memory note → .harness/inbox.md DRAFT → .claude/rules/*.md standard → .claude/hooks/ mechanical check
+auto memory note → .harness/inbox.md DRAFT → .claude/rules/*.md standard → .claude/hooks/ or .claude/harness/ mechanical check
 ```
 
 Each promotion increases determinism:
