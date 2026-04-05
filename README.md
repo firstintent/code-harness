@@ -1,5 +1,7 @@
 # code-harness
 
+**English** | [简体中文](README_CN.md)
+
 A file-driven control plane for Claude Code. Build large projects with sustained quality, async human decisions, and multi-machine coordination — zero custom software.
 
 ## What it does
