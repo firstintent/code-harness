@@ -26,11 +26,16 @@ while [[ $# -gt 0 ]]; do
       echo "  --force    Overwrite everything including your customizations"
       echo "  --version  Show installed version"
       echo ""
-      echo "File ownership:"
-      echo "  .claude/harness/  — framework (replaced by --update)"
-      echo "  .claude/rules/    — yours (never touched by --update)"
-      echo "  .claude/hooks/    — yours (never touched by --update)"
-      echo "  .harness/         — yours (never touched by --update)"
+      echo "Installed files (minimal):"
+      echo "  CLAUDE.md              — 2-line entry point"
+      echo "  .claude/settings.json  — Stop hook (evaluator + loop detection)"
+      echo "  .claude/harness/       — framework (playbook + evaluator)"
+      echo "  .harness/tasks.md      — task list"
+      echo "  .harness/decisions.md  — async decisions"
+      echo ""
+      echo "On-demand files (created by Claude when needed):"
+      echo "  .claude/rules/         — project-specific standards"
+      echo "  .harness/log.tsv       — evaluator history"
       exit 0 ;;
     *) TARGET="$1"; shift ;;
   esac
@@ -65,9 +70,8 @@ if [ "$UPDATE" -eq 1 ]; then
   mkdir -p "$TARGET/.claude"
   rm -rf "$TARGET/.claude/harness"
   cp -r "$SRC/.claude/harness" "$TARGET/.claude/harness"
-  chmod +x "$TARGET/.claude/harness/"*.sh 2>/dev/null
   echo "Updated .claude/harness/ ($(ls "$TARGET/.claude/harness/" | wc -l) files)"
-  echo "Your files untouched: .claude/rules/, .claude/hooks/, .harness/, CLAUDE.md"
+  echo "Your files untouched: .claude/rules/, .harness/, CLAUDE.md"
   exit 0
 fi
 
@@ -91,23 +95,13 @@ copy_if_new() {
 mkdir -p "$TARGET/.claude"
 rm -rf "$TARGET/.claude/harness"
 cp -r "$SRC/.claude/harness" "$TARGET/.claude/harness"
-chmod +x "$TARGET/.claude/harness/"*.sh 2>/dev/null
 CREATED+=(".claude/harness/ ($VER)")
 
-copy_if_new "$SRC/.claude/settings.json"             "$TARGET/.claude/settings.json"
-
-# User files (only on first install)
-copy_if_new "$SRC/CLAUDE.md"                          "$TARGET/CLAUDE.md"
-copy_if_new "$SRC/.claude/rules/api-quality.md"       "$TARGET/.claude/rules/api-quality.md"
-copy_if_new "$SRC/.claude/rules/frontend-quality.md"  "$TARGET/.claude/rules/frontend-quality.md"
-copy_if_new "$SRC/.claude/hooks/protect-arch.sh"      "$TARGET/.claude/hooks/protect-arch.sh"
-
-# State files (only on first install)
-for f in tasks.md decisions.md learned.md inbox.md log.tsv architecture.md; do
-  copy_if_new "$SRC/.harness/$f" "$TARGET/.harness/$f"
-done
-
-chmod +x "$TARGET/.claude/hooks/"*.sh 2>/dev/null
+# Core files (only on first install)
+copy_if_new "$SRC/.claude/settings.json"  "$TARGET/.claude/settings.json"
+copy_if_new "$SRC/CLAUDE.md"              "$TARGET/CLAUDE.md"
+copy_if_new "$SRC/.harness/tasks.md"      "$TARGET/.harness/tasks.md"
+copy_if_new "$SRC/.harness/decisions.md"  "$TARGET/.harness/decisions.md"
 
 # .gitignore
 if [ -f "$TARGET/.gitignore" ]; then
@@ -127,7 +121,6 @@ for f in "${CREATED[@]}"; do echo "  ✓ $f"; done
 echo ""
 echo "Next steps:"
 echo "  cd $TARGET && claude"
-echo "  > Read the codebase, update .harness/architecture.md, adjust .claude/hooks/protect-arch.sh"
+echo "  > run unattended"
 echo ""
-echo "Dashboard:  python $TARGET/.claude/harness/dashboard.py $TARGET"
-echo "Update:     install.sh --update $TARGET"
+echo "Update:  install.sh --update $TARGET"

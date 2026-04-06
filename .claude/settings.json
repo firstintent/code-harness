@@ -6,32 +6,20 @@
         "hooks": [
           {
             "type": "command",
-            "command": "echo '--- Code Harness Rules (re-injected after compaction) ---' && find \"$CLAUDE_PROJECT_DIR\"/.claude/harness/ -name '*.md' ! -name 'playbook.md' ! -name 'evaluator.md' -exec cat {} + && find \"$CLAUDE_PROJECT_DIR\"/.claude/rules/ -name '*.md' -exec cat {} + 2>/dev/null"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/protect-arch.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/harness/check-ownership.sh"
+            "command": "echo '=== HARNESS STATE ===' && if [ -f \"$CLAUDE_PROJECT_DIR/.harness/tasks.md\" ]; then echo '--- Tasks ---' && grep -E '\\- \\[[ ~]\\]' \"$CLAUDE_PROJECT_DIR/.harness/tasks.md\" 2>/dev/null | head -10; fi && if [ -f \"$CLAUDE_PROJECT_DIR/.harness/decisions.md\" ]; then echo '--- Pending Decisions ---' && grep -E '\\- \\[ \\]' \"$CLAUDE_PROJECT_DIR/.harness/decisions.md\" 2>/dev/null | head -10; fi && if [ -f \"$CLAUDE_PROJECT_DIR/.harness/log.tsv\" ]; then echo '--- Recent Log ---' && tail -5 \"$CLAUDE_PROJECT_DIR/.harness/log.tsv\"; fi && if [ -d \"$CLAUDE_PROJECT_DIR/.claude/rules\" ]; then echo '--- Rules ---' && find \"$CLAUDE_PROJECT_DIR/.claude/rules\" -name '*.md' -exec cat {} + 2>/dev/null; fi"
           }
         ]
       }
     ],
     "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Check if the agent is stuck in a loop. Signs: 1) Same file edited 3+ times in last 5 tool calls with similar changes. 2) Same test failed 3+ times with same error. 3) Reverting and re-applying similar changes. If stuck: respond {\"ok\": false, \"reason\": \"Loop detected. Write the blocker to .harness/decisions.md, skip this task, move to the next one.\"}. If not stuck: {\"ok\": true}."
+          }
+        ]
+      },
       {
         "hooks": [
           {
@@ -42,24 +30,13 @@
         ]
       }
     ],
-    "TaskCompleted": [
-      {
-        "hooks": [
-          {
-            "type": "agent",
-            "agent": ".claude/harness/evaluator.md",
-            "timeout": 180
-          }
-        ]
-      }
-    ],
     "StopFailure": [
       {
         "matcher": "rate_limit|billing_error",
         "hooks": [
           {
             "type": "command",
-            "command": "echo 'Account quota likely exhausted. Stashing uncommitted work and updating tasks.md.' >&2 && cd \"$CLAUDE_PROJECT_DIR\" && git stash push -m \"harness-autosave-$(date +%s)\" 2>/dev/null; echo '{\"additionalContext\": \"You hit rate limits or billing limits. Immediately: 1) Update your claimed task in .harness/tasks.md to remove your claim so another machine can pick it up. 2) git commit and push .harness/tasks.md. 3) Stop.\"}'"
+            "command": "echo 'Account quota likely exhausted. Stashing work.' >&2 && cd \"$CLAUDE_PROJECT_DIR\" && git stash push -m \"harness-autosave-$(date +%s)\" 2>/dev/null; echo '{\"additionalContext\": \"Rate/billing limit hit. Commit any pending work, then stop.\"}'"
           }
         ]
       }
