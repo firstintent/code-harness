@@ -2,137 +2,98 @@
 
 **English** | [简体中文](README_CN.md)
 
-A file-driven control plane for Claude Code. Build large projects with sustained quality, async human decisions, and multi-machine coordination — zero custom software.
+A quality-first control plane for Claude Code. Test every change, queue async decisions, run unattended — zero custom software, no CLAUDE.md modification.
+
+## Philosophy
+
+Most harness systems over-invest in **process** (task queues, claim protocols, GC loops) and under-invest in **verification**. code-harness flips this: the entire value is a reliable quality signal on every change. Process grows only when needed.
+
+Inspired by [autoresearch](https://github.com/karpathy/autoresearch): skip the process, never skip the check.
 
 ## What it does
 
-code-harness is a set of configuration files that turn Claude Code into an autonomous development system with built-in quality control. It uses Claude Code's native mechanisms (hooks, subagents, rules, channels) to:
+- **Stop hook evaluator** runs after every task — tests first, rules second
+- **Loop detection** catches stuck agents and forces them to move on
+- **Auto-generated standards** — evaluator analyzes your project and creates project-specific rules on first run
+- **Async decisions** — Claude writes questions to a file instead of blocking; keeps working
+- **No CLAUDE.md modification** — installs via `.claude/rules/` which Claude Code auto-loads
 
-- **Prevent code drift** — architectural constraints enforced mechanically via hooks
-- **Auto-evaluate every change** — Stop hook triggers an independent evaluator after each task
-- **Accumulate judgment** — reject signals become permanent quality standards
-- **Run unattended** — decisions that need human input queue up in a file; Claude keeps working on other tasks
-- **Scale to multiple machines** — git-based task claiming and file ownership
+## Quick start
+
+```bash
+# Install
+curl -sSL https://raw.githubusercontent.com/firstintent/code-harness/main/install.sh | bash -s -- /path/to/project
+
+# Start
+cd your-project && claude
+```
+
+Interactive use — just give Claude a task. The evaluator runs automatically.
+
+Unattended — say `run unattended`. Claude reads `.harness/tasks.md` and loops.
+
+## What gets installed
+
+```
+your-project/
+├── .claude/
+│   ├── settings.json              # Hooks: evaluator + loop detection + compaction recovery
+│   ├── harness/    ← FRAMEWORK (replaced by --update)
+│   │   ├── VERSION
+│   │   ├── evaluator.md           # QA subagent: test → use → rules
+│   │   └── playbook.md            # Unattended protocol
+│   └── rules/      ← YOURS (never overwritten)
+│       └── harness.md             # Entry point (auto-loaded by Claude Code)
+│
+└── .harness/       ← YOURS (never overwritten)
+    ├── tasks.md                   # Task list
+    └── decisions.md               # Async decision queue
+```
+
+**On-demand files** (created by Claude when first needed):
+- `.claude/rules/project-standards.md` — auto-generated from your codebase
+- `.harness/log.tsv` — evaluator history
 
 ## How it works
 
 ```
-Claude Code (execution) ← .claude/harness/ + .claude/rules/ (standards)
-         ↓                        ↑
-    Stop hook          reject signal from human
-         ↓                        ↑
-  evaluator subagent → .harness/log.tsv
+User request or tasks.md
+         ↓
+   Claude implements
+         ↓
+   Stop hook fires
+    ┌────┴────┐
+    │ Loop    │ Stuck? → write to decisions.md, skip task
+    │ detect  │ Not stuck? → continue
+    └────┬────┘
+         ↓
+   Evaluator subagent
+    1. Run tests
+    2. Try to use the feature
+    3. Check project rules
+         ↓
+   Pass → mark done, next task
+   Fail → fix, re-evaluate
 ```
 
-The system has three layers of defense against drift:
+## Usage
 
-1. **PreToolUse hooks** — hard constraints, code that violates them can't be written
-2. **Stop hook evaluator** — checks every completed task against rules, forces fixes
-3. **Human reject signals** — when the evaluator misses something, the human's correction becomes a new rule
-
-## Quick start
-
-### 1. Install
-
-```bash
-# One-liner (downloads and installs)
-curl -sSL https://raw.githubusercontent.com/firstintent/code-harness/main/install.sh | bash -s -- /path/to/your/project
-
-# Or clone first, then install locally
-git clone https://github.com/firstintent/code-harness.git
-./code-harness/install.sh /path/to/your/project
-```
-
-Options: `--force` to overwrite all files (including your customizations).
-
-### 2. Customize for your project
-
-Edit these files for your project:
-
-- `.claude/hooks/protect-arch.sh` — add your architecture rules
-- `.claude/rules/api-quality.md` — adjust paths and API standards
-- `.claude/rules/frontend-quality.md` — adjust paths and frontend standards
-- `.harness/architecture.md` — describe your project structure
-
-Or let Claude do it:
+### Interactive development
 
 ```
-> Read the codebase and update .harness/architecture.md,
-> then adjust .claude/hooks/protect-arch.sh to match the architecture.
+> Add subscription billing to the Claude Code runtime
 ```
 
-### 3. Start working
+Claude assesses complexity, designs if complex, implements, evaluator auto-checks.
+If Claude hits a point needing your judgment, it writes to `.harness/decisions.md` and continues.
 
-```bash
-cd your-project
-claude
-```
+### Unattended overnight
 
 ```
-> Read .harness/tasks.md and execute tasks in order.
+> run unattended
 ```
 
-That's it. The hooks handle everything else automatically.
-
-### 4. Update
-
-```bash
-# Update framework files only (your customizations are safe)
-curl -sSL https://raw.githubusercontent.com/firstintent/code-harness/main/install.sh | bash -s -- --update
-
-# Check current version
-cat .claude/harness/VERSION
-```
-
-## File structure
-
-```
-your-project/
-├── CLAUDE.md                              # Entry point (yours)
-├── .claude/
-│   ├── settings.json                      # Hooks configuration
-│   ├── harness/          ← FRAMEWORK (replaced entirely by --update)
-│   │   ├── VERSION                        # Installed version
-│   │   ├── evaluator.md                   # QA evaluator subagent
-│   │   ├── playbook.md                    # Workflow instructions
-│   │   ├── base-standards.md              # Global quality standards
-│   │   ├── check-ownership.sh             # Multi-machine file ownership
-│   │   └── dashboard.py                   # Web dashboard
-│   ├── hooks/            ← YOURS (never overwritten by --update)
-│   │   └── protect-arch.sh                # Your architecture constraints
-│   └── rules/            ← YOURS (never overwritten by --update)
-│       ├── api-quality.md                 # Your API standards
-│       └── frontend-quality.md            # Your frontend standards
-│
-└── .harness/             ← YOURS (never overwritten by --update)
-    ├── tasks.md                           # Task list + claim status
-    ├── decisions.md                       # Decision queue (human async)
-    ├── learned.md                         # Cross-session knowledge
-    ├── inbox.md                           # New standards staging
-    ├── log.tsv                            # Evaluator history
-    └── architecture.md                    # Project architecture map
-```
-
-### File ownership
-
-| Directory | Owner | `--update` behavior | What to put here |
-|-----------|-------|---------------------|------------------|
-| `.claude/harness/` | Framework | **Replaced** on update | Don't edit — your changes will be overwritten |
-| `.claude/hooks/` | You | Never touched | Your project-specific architecture constraints |
-| `.claude/rules/` | You | Never touched | Your project-specific quality standards |
-| `.harness/` | You | Never touched | Tasks, decisions, logs, learned knowledge |
-| `CLAUDE.md` | You | Never touched | Add your project-specific instructions here |
-| `dashboard.py` | Framework | Inside `.claude/harness/`, replaced on update | Don't edit |
-
-## Usage scenarios
-
-### Daily development (single machine)
-
-```
-> Implement user registration with email validation
-```
-
-Claude implements → Stop hook triggers evaluator → evaluator checks rules → fixes issues → done.
+Next morning: tasks done, decisions queued for you.
 
 ### Reject and improve
 
@@ -140,98 +101,34 @@ Claude implements → Stop hook triggers evaluator → evaluator checks rules �
 > reject: OAuth doesn't handle token expiry
 ```
 
-Claude proposes a new standard → you approve → it's added to rules → all future OAuth code is checked against it.
+Claude generates a project-specific standard from your feedback, fixes the code, re-evaluates.
 
-### Unattended overnight run
-
-```
-> Read .harness/tasks.md. Execute all tasks.
-> When you need a human decision, write to decisions.md and move to the next task.
-> Don't stop.
-```
-
-Next morning: 8 tasks done, 3 decisions waiting for you.
-
-### Multi-machine parallel development
-
-On each machine:
+### Update
 
 ```bash
-export MACHINE_ID=A  # B, C on other machines
-claude
+curl -sSL https://raw.githubusercontent.com/firstintent/code-harness/main/install.sh | bash -s -- --update
 ```
 
-```
-> You are machine $MACHINE_ID. Follow multi-machine protocol in playbook.
-> Claim and execute tasks from .harness/tasks.md.
-```
+Replaces `.claude/harness/` only. Your rules, tasks, and decisions are untouched.
 
-### With Telegram for remote control
+## Design decisions
 
-```bash
-# One-time setup
-/plugin install telegram@claude-plugins-official
-/telegram:configure <bot-token>
+**No pre-installed quality standards.** Generic rules ("no dead code", "consistent error handling") give a false sense of quality control. The evaluator generates project-specific standards from your actual codebase on first run.
 
-# Start with channel
-claude --channels plugin:telegram@claude-plugins-official
-```
+**Tests > rules > hooks.** A rule that can be expressed as a test should become a test. Standard lifecycle: `rule (text) → test (mechanical) → hook (write-time block)`.
 
-Now you can send tasks, get notifications, and respond to decisions from your phone.
+**No CLAUDE.md modification.** `.claude/rules/*.md` is auto-loaded by Claude Code. No need to touch the project's existing CLAUDE.md.
 
-### GC (garbage collection)
+**Multi-machine is optional.** Not installed by default. Add it when you actually need it.
 
-```
-> Do a GC run
-```
-
-Claude analyzes log.tsv, reviews inbox.md, scans for drift, reports what needs attention.
-
-## Execution modes
-
-| Mode | When to use | How it works |
-|------|-------------|--------------|
-| `single` | Default, most tasks | One session + auto-evaluation |
-| `parallel` | Independent subtasks < 15 min each | Subagents run in parallel |
-| `team` | Subtasks > 30 min or need cross-communication | Agent team with independent sessions |
-| `swarm` | Bulk identical tasks, fully independent | Multiple headless `claude -p` in parallel |
-
-Tag tasks in tasks.md: `[mode: parallel]`, `[mode: team]`, etc.
-
-## Standards lifecycle
-
-```
-auto memory → inbox.md DRAFT → rules/*.md standard → hooks/ mechanical check
-```
-
-Each promotion increases determinism. The goal: every standard that CAN be mechanically checked eventually becomes a hook.
-
-## Multi-machine setup
-
-1. All machines clone the same repo
-2. Set `MACHINE_ID` environment variable on each machine
-3. Add `owns:` patterns to tasks in tasks.md
-4. Machines auto-coordinate via git push/pull
-
-See the Multi-Machine Coordination section in `.claude/harness/playbook.md` for the full protocol.
-
-## Dashboard
-
-Monitor your harness state with the built-in web dashboard:
-
-```bash
-python .claude/harness/dashboard.py /path/to/your/project
-# Open http://localhost:5000
-```
-
-Shows tasks, decisions, evaluator log, standards, and multi-machine status. Auto-refreshes every 15 seconds.
+**Complexity gate.** Simple tasks (clear pattern, <5 files, <15 min) skip plan/decisions overhead. Quality checks never skip.
 
 ## Inspired by
 
-- [Harness Engineering](https://openai.com/index/harness-engineering/) (OpenAI) — repository as system of record, golden principles, GC loops
-- [Harness Design for Long-Running Apps](https://www.anthropic.com/engineering/harness-design-long-running-apps) (Anthropic) — generator-evaluator separation, criteria calibration
-- [autoresearch](https://github.com/karpathy/autoresearch) (Karpathy) — minimal file-driven agent loop
-- [Building a C Compiler](https://www.anthropic.com/engineering/building-c-compiler) (Carlini) — multi-agent parallel development at scale
+- [autoresearch](https://github.com/karpathy/autoresearch) (Karpathy) — minimal file-driven agent loop, val_bpb on every run
+- [Harness Design for Long-Running Apps](https://www.anthropic.com/engineering/harness-design-long-running-apps) (Anthropic) — generator-evaluator separation
+- [Harness Engineering](https://openai.com/index/harness-engineering/) (OpenAI) — repository as system of record
+- [Building a C Compiler](https://www.anthropic.com/engineering/building-c-compiler) (Carlini) — multi-agent parallel development
 
 ## License
 
