@@ -26,15 +26,15 @@ while [[ $# -gt 0 ]]; do
       echo "  --force    Overwrite everything including your customizations"
       echo "  --version  Show installed version"
       echo ""
-      echo "Installed files (minimal):"
-      echo "  CLAUDE.md              — 2-line entry point"
+      echo "Installed files (minimal, does NOT touch CLAUDE.md):"
       echo "  .claude/settings.json  — Stop hook (evaluator + loop detection)"
       echo "  .claude/harness/       — framework (playbook + evaluator)"
+      echo "  .claude/rules/harness.md — entry point (auto-loaded by Claude Code)"
       echo "  .harness/tasks.md      — task list"
       echo "  .harness/decisions.md  — async decisions"
       echo ""
       echo "On-demand files (created by Claude when needed):"
-      echo "  .claude/rules/         — project-specific standards"
+      echo "  .claude/rules/project-standards.md — project-specific standards"
       echo "  .harness/log.tsv       — evaluator history"
       exit 0 ;;
     *) TARGET="$1"; shift ;;
@@ -71,7 +71,7 @@ if [ "$UPDATE" -eq 1 ]; then
   rm -rf "$TARGET/.claude/harness"
   cp -r "$SRC/.claude/harness" "$TARGET/.claude/harness"
   echo "Updated .claude/harness/ ($(ls "$TARGET/.claude/harness/" | wc -l) files)"
-  echo "Your files untouched: .claude/rules/, .harness/, CLAUDE.md"
+  echo "Your files untouched: .claude/rules/, .harness/"
   exit 0
 fi
 
@@ -98,9 +98,9 @@ cp -r "$SRC/.claude/harness" "$TARGET/.claude/harness"
 CREATED+=(".claude/harness/ ($VER)")
 
 # Core files (only on first install)
-copy_if_new "$SRC/.claude/settings.json"  "$TARGET/.claude/settings.json"
-copy_if_new "$SRC/CLAUDE.md"              "$TARGET/CLAUDE.md"
-copy_if_new "$SRC/.harness/tasks.md"      "$TARGET/.harness/tasks.md"
+copy_if_new "$SRC/.claude/settings.json"       "$TARGET/.claude/settings.json"
+copy_if_new "$SRC/.claude/rules/harness.md"   "$TARGET/.claude/rules/harness.md"
+copy_if_new "$SRC/.harness/tasks.md"           "$TARGET/.harness/tasks.md"
 copy_if_new "$SRC/.harness/decisions.md"  "$TARGET/.harness/decisions.md"
 
 # .gitignore
