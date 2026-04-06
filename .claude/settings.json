@@ -24,7 +24,7 @@
         "hooks": [
           {
             "type": "agent",
-            "agent": ".claude/harness/evaluator.md",
+            "prompt": "Run the evaluator: read .claude/harness/evaluator.md and follow its instructions to evaluate the agent's work. Check test results and rule compliance.",
             "timeout": 120
           }
         ]
