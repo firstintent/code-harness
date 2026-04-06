@@ -5,9 +5,6 @@
 .claude/settings.local.json
 CLAUDE.local.md
 
-# Python
-__pycache__/
-
 # OS
 .DS_Store
 Thumbs.db

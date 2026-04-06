@@ -18,11 +18,14 @@ Inspired by [autoresearch](https://github.com/karpathy/autoresearch): skip the p
 - **Async decisions** — Claude writes questions to a file instead of blocking; keeps working
 - **No CLAUDE.md modification** — installs via `.claude/rules/` which Claude Code auto-loads
 
-## Quick start
+## Install & update
 
 ```bash
 # Install
 curl -sSL https://raw.githubusercontent.com/firstintent/code-harness/main/install.sh | bash -s -- /path/to/project
+
+# Update (replaces .claude/harness/ only, your files untouched)
+curl -sSL https://raw.githubusercontent.com/firstintent/code-harness/main/install.sh | bash -s -- --update /path/to/project
 
 # Start
 cd your-project && claude
@@ -102,14 +105,6 @@ Next morning: tasks done, decisions queued for you.
 ```
 
 Claude generates a project-specific standard from your feedback, fixes the code, re-evaluates.
-
-### Update
-
-```bash
-curl -sSL https://raw.githubusercontent.com/firstintent/code-harness/main/install.sh | bash -s -- --update
-```
-
-Replaces `.claude/harness/` only. Your rules, tasks, and decisions are untouched.
 
 ## Design decisions
 
